@@ -361,8 +361,8 @@ async function callPollinations(messages, model, temperature) {
 // ============================================================
 
 function getGeminiModel() {
-  // User bisa pilih model di settings, default 2.0-flash (paling akurat untuk free tier)
-  return localStorage.getItem('feynman-gemini-model') || 'gemini-2.0-flash';
+  // User bisa pilih model di settings, default 2.5-flash (paling baru & stabil untuk free tier)
+  return localStorage.getItem('feynman-gemini-model') || 'gemini-2.5-flash';
 }
 
 async function transcribeAudioWithGemini(audioBase64, mimeType, apiKey, model) {
@@ -397,10 +397,14 @@ async function transcribeAudioWithGemini(audioBase64, mimeType, apiKey, model) {
       if (res.status === 400 && errMsg.includes('API key')) errMsg = 'API key tidak valid. Cek di Settings.';
       if (res.status === 403) errMsg = 'API key tidak memiliki akses ke Gemini. Aktifkan di Google AI Studio.';
       if (res.status === 429) errMsg = 'Rate limit. Tunggu 1 menit.';
-      // Fallback to 1.5-flash if 2.0-flash fails (model not found)
-      if (useModel === 'gemini-2.0-flash' && (res.status === 404 || (res.status === 400 && !errMsg.includes('API key')))) {
-        console.warn('[ASR] Fallback to gemini-1.5-flash');
-        return transcribeAudioWithGemini(audioBase64, mimeType, apiKey, 'gemini-1.5-flash');
+      // Fallback chain jika model utama gagal (model not found / 404)
+      if (res.status === 404 || (res.status === 400 && !errMsg.includes('API key'))) {
+        const fallbacks = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-2.5-flash-lite'];
+        const next = fallbacks.find(m => m !== useModel);
+        if (next) {
+          console.warn(`[ASR] Fallback dari ${useModel} ke ${next}`);
+          return transcribeAudioWithGemini(audioBase64, mimeType, apiKey, next);
+        }
       }
       return { ok: false, error: `Gemini ASR: ${errMsg}` };
     }
@@ -733,10 +737,10 @@ Gabungkan menjadi narasi kronologis yang mengalir. Maksimal 400 kata. Bahasa Ind
       if (res.status === 400 && errMsg.includes('API key')) errMsg = 'API key tidak valid. Cek di Settings.';
       if (res.status === 403) errMsg = 'API key tidak memiliki akses ke Gemini. Aktifkan di Google AI Studio.';
       if (res.status === 429) errMsg = 'Rate limit. Tunggu 1 menit.';
-      // Fallback to 1.5-flash
+      // Fallback ke model lain yang masih aktif jika model utama 404/400
       if (useModel === 'gemini-2.0-flash' && (res.status === 404 || (res.status === 400 && !errMsg.includes('API key')))) {
-        console.warn('[Image VLM] Fallback to gemini-1.5-flash');
-        const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        console.warn('[Image VLM] Fallback to gemini-2.0-flash-lite');
+        const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
         const fallbackController = new AbortController();
         const fallbackTimeout = setTimeout(() => fallbackController.abort(), 60000);
         try {
@@ -836,10 +840,10 @@ Jawab dalam Bahasa Indonesia, maksimal 500 kata. Jika gambar tidak jelas atau ti
       const errText = await res.text().catch(() => '');
       let errMsg = `HTTP ${res.status}`;
       try { const e = JSON.parse(errText); errMsg = e.error?.message || errMsg; } catch {}
-      // Fallback to 1.5-flash
+      // Fallback ke model lain yang masih aktif
       if (useModel === 'gemini-2.0-flash' && (res.status === 404 || (res.status === 400 && !errMsg.includes('API key')))) {
-        console.warn('[VLM] Fallback to gemini-1.5-flash');
-        const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        console.warn('[VLM] Fallback to gemini-2.0-flash-lite');
+        const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
         const fallbackController = new AbortController();
         const fallbackTimeout = setTimeout(() => fallbackController.abort(), 60000);
         try {
@@ -2296,12 +2300,12 @@ function renderSettingsModal() {
     <div style="margin-bottom: 1rem;" id="gemini-model-row" ${provider !== 'google' ? 'style="display:none;"' : ''}>
       <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.4rem;">Model Gemini (untuk transkripsi audio/video)</label>
       <select id="gemini-model" style="width: 100%; background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 0.4rem; padding: 0.5rem; color: var(--text); font-size: 0.9rem; font-family: inherit;">
-        <option value="gemini-2.0-flash" ${getGeminiModel() === 'gemini-2.0-flash' ? 'selected' : ''}>gemini-2.0-flash (paling akurat, recommended)</option>
-        <option value="gemini-2.5-flash" ${getGeminiModel() === 'gemini-2.5-flash' ? 'selected' : ''}>gemini-2.5-flash (terbaru)</option>
-        <option value="gemini-1.5-flash" ${getGeminiModel() === 'gemini-1.5-flash' ? 'selected' : ''}>gemini-1.5-flash (cepat, basic)</option>
-        <option value="gemini-1.5-pro" ${getGeminiModel() === 'gemini-1.5-pro' ? 'selected' : ''}>gemini-1.5-pro (paling akurat, lebih lambat)</option>
+        <option value="gemini-2.5-flash" ${getGeminiModel() === 'gemini-2.5-flash' ? 'selected' : ''}>gemini-2.5-flash (terbaru, recommended)</option>
+        <option value="gemini-2.0-flash" ${getGeminiModel() === 'gemini-2.0-flash' ? 'selected' : ''}>gemini-2.0-flash (akurat, stabil)</option>
+        <option value="gemini-2.0-flash-lite" ${getGeminiModel() === 'gemini-2.0-flash-lite' ? 'selected' : ''}>gemini-2.0-flash-lite (ringan, cepat)</option>
+        <option value="gemini-2.5-pro" ${getGeminiModel() === 'gemini-2.5-pro' ? 'selected' : ''}>gemini-2.5-pro (paling akurat, lebih lambat)</option>
       </select>
-      <p class="help-text" style="margin-top: 0.3rem;">Untuk transkripsi 30 menit, gunakan 2.0-flash atau 1.5-pro.</p>
+      <p class="help-text" style="margin-top: 0.3rem;">Untuk transkripsi panjang, gunakan 2.5-flash atau 2.5-pro.</p>
     </div>
 
     <div style="margin-bottom: 1rem;">
