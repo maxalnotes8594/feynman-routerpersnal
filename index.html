@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Feynman Router — Belajar dengan 30 AI Gratis</title>
+  <meta name="description" content="Belajar teknik Feynman dengan smart router ke 30 AI gratis. Kamu mengajar, AI bertanya sebagai coach atau murid." />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============== HOME VIEW ============== -->
+  <div id="home-view" class="view active">
+    <header class="home-header">
+      <div class="hero-glow"></div>
+      <div class="container">
+        <div class="badge-top">
+          <span>✨</span>
+          <span>Feynman Learning • Smart Router • <span id="ai-count">30</span> AI Gratis</span>
+        </div>
+        <h1 class="hero-title">Ajarkan. Dikoreksi. Pahami.</h1>
+        <p class="hero-subtitle">
+          Aplikasi ini BUKAN AI — ia hanya router cerdas yang mengarahkan ucapanmu ke puluhan AI gratis.
+          Kamu mengajar, AI bertanya. Begitulah cara Feynman memahami apa pun.
+        </p>
+        <div class="trust-badges">
+          <span class="badge">⚡ Tanpa API key</span>
+          <span class="badge">🛡️ 100% Gratis</span>
+          <span class="badge">🌐 7 Provider</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Mode selector -->
+      <div class="card">
+        <h2 class="card-title">1. Pilih Mode Belajar</h2>
+        <div class="mode-grid">
+          <button class="mode-btn active" data-mode="coach" style="--mode-color: #10b981;">
+            <div class="mode-icon">🎓</div>
+            <div class="mode-name">Mode Coach</div>
+            <div class="mode-desc">AI jadi mentor: mengoreksi, menguji, mendorong lebih dalam.</div>
+          </button>
+          <button class="mode-btn" data-mode="student" style="--mode-color: #f43f5e;">
+            <div class="mode-icon">🧒</div>
+            <div class="mode-name">Mode Murid</div>
+            <div class="mode-desc">AI jadi murid penasaran: bertanya polos, bongkar celah pemahaman.</div>
+          </button>
+          <button class="mode-btn" data-mode="hybrid" style="--mode-color: #8b5cf6;">
+            <div class="mode-icon">✨</div>
+            <div class="mode-name">Mode Gabungan</div>
+            <div class="mode-desc">Bergantian: AI sebagai guru & murid. Jelaskan, AI koreksi & tanya.</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Topic input -->
+      <div class="card">
+        <h2 class="card-title">2. Apa yang ingin kamu ajarkan?</h2>
+        <input type="text" id="topic-input" class="topic-input" placeholder="Contoh: Teori relativitas, Big-O notation, Sejarah Majapahit..." />
+        <p class="help-text">Topik ini akan dikirim ke smart router bersama setiap pembicaraanmu.</p>
+        <div id="player-target-info" class="info-row"></div>
+      </div>
+
+      <!-- Start button -->
+      <div class="start-section">
+        <button id="start-btn" class="btn btn-primary btn-lg" disabled>
+          <span>✨</span>
+          <span>Mulai Sesi Feynman</span>
+        </button>
+        <p id="start-hint" class="help-text">Tulis topik minimal 3 karakter untuk mulai</p>
+      </div>
+
+      <!-- Top action buttons -->
+      <div class="top-actions">
+        <button class="btn btn-outline" id="settings-btn">⚙️ Settings</button>
+        <button class="btn btn-outline" id="history-btn">📋 Riwayat <span id="history-count" class="badge-mini"></span></button>
+        <button class="btn btn-outline" id="target-btn">🎯 Target</button>
+        <button class="btn btn-outline" id="leaderboard-btn">🏆 Kelas <span id="player-count" class="badge-mini"></span></button>
+        <button class="btn btn-outline" id="trend-btn">📈 Tren</button>
+      </div>
+
+      <!-- How it works -->
+      <div class="card card-muted">
+        <h2 class="card-title">Cara Kerja Smart Router</h2>
+        <ol class="how-list">
+          <li><strong>1.</strong> Kamu berbicara / mengetik → jadi prompt.</li>
+          <li><strong>2.</strong> Smart router memilih AI gratis terbaik berdasarkan topik & mode.</li>
+          <li><strong>3.</strong> AI terpilih (OpenAI, Mistral, Llama, DeepSeek, Qwen, Gemini, dll) membalas.</li>
+          <li><strong>4.</strong> Jika satu AI gagal, router otomatis beralih ke AI lain.</li>
+        </ol>
+      </div>
+
+      <!-- Providers -->
+      <div class="card">
+        <h2 class="card-title"><span id="total-ais">30</span> AI Gratis Tersedia</h2>
+        <div id="providers-list" class="providers-list"></div>
+        <p class="help-text">Semua diakses melalui Pollinations.ai — tanpa API key, tanpa biaya.</p>
+      </div>
+    </main>
+
+    <footer class="home-footer">
+      <p>Dibuat untuk para pembelajar • Teknik Feynman + Smart Router AI Gratis</p>
+    </footer>
+  </div>
+
+  <!-- ============== SESSION VIEW ============== -->
+  <div id="session-view" class="view">
+    <!-- Top bar -->
+    <div class="session-topbar">
+      <button class="btn btn-ghost" id="back-btn">← Beranda</button>
+      <div id="target-indicator" class="target-indicator" style="display:none;"></div>
+      <button class="btn btn-outline" id="persona-btn">⚙️ AI: auto</button>
+    </div>
+
+    <!-- Chat area -->
+    <div id="chat-header" class="chat-header">
+      <div id="persona-avatar" class="persona-avatar">?</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="persona-name">Menunggu AI pertama...</div>
+        <div class="chat-header-meta">
+          <span id="mode-display">coach</span> • <span id="topic-display"></span>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="btn btn-ghost" id="evaluate-btn">📊 Nilai</button>
+        <button class="btn btn-ghost" id="speak-toggle">🔊</button>
+        <button class="btn btn-ghost" id="clear-btn">🗑️</button>
+      </div>
+    </div>
+
+    <div id="messages" class="messages">
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <p class="empty-text" id="empty-text">Mulai menjelaskan topik dengan suara, ketik, atau rekam video. Coach akan mengoreksi & menanyakan hal-hal yang membuatmu berpikir lebih dalam.</p>
+      </div>
+    </div>
+
+    <!-- Closing phrase banner -->
+    <div id="closing-banner" class="closing-banner" style="display:none;">
+      <span class="closing-icon">✅</span>
+      <span class="closing-text"></span>
+      <button class="btn btn-primary btn-sm" id="closing-evaluate">✨ Ya, nilai</button>
+      <button class="btn btn-ghost btn-sm" id="closing-dismiss">✕</button>
+    </div>
+
+    <!-- Input bar -->
+    <div class="input-bar">
+      <div id="listening-indicator" class="listening-indicator" style="display:none;">
+        <span class="pulse-dot"></span>
+        <span id="interim-text"></span>
+      </div>
+      <div class="input-row">
+        <button class="btn btn-icon btn-mic" id="mic-btn" title="Bicara langsung">🎤</button>
+        <button class="btn btn-icon" id="record-btn" title="Rekam suara/video">📹</button>
+        <button class="btn btn-icon" id="image-btn" title="Upload gambar (diagram, rumus, screenshot)">📎</button>
+        <textarea id="message-input" class="message-input" placeholder="Jelaskan topikmu..." rows="1"></textarea>
+        <button class="btn btn-icon btn-send" id="send-btn" disabled>➤</button>
+      </div>
+      <!-- Hidden file input for image upload -->
+      <input type="file" id="image-input" accept="image/*" style="display:none;" />
+      <!-- Image preview area -->
+      <div id="image-preview" class="image-preview" style="display:none;"></div>
+      <div class="input-hints">
+        <span id="mic-hint">Mic = live • Video = rekam</span>
+        <span id="last-ai"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== RECORDER MODAL ============== -->
+  <div id="recorder-modal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Rekam Suara / Video</h2>
+        <button class="btn btn-ghost btn-icon" id="recorder-close">✕</button>
+      </div>
+      <div id="recorder-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============== EVALUATION MODAL ============== -->
+  <div id="eval-modal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>📊 Penilaian Feynman</h2>
+        <button class="btn btn-ghost btn-icon" id="eval-close">✕</button>
+      </div>
+      <div id="eval-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============== TARGET MODAL ============== -->
+  <div id="target-modal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🎯 Target Skor per Topik</h2>
+        <button class="btn btn-ghost btn-icon" id="target-close">✕</button>
+      </div>
+      <div id="target-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============== LEADERBOARD MODAL ============== -->
+  <div id="leaderboard-modal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏆 Papan Kelas</h2>
+        <button class="btn btn-ghost btn-icon" id="leaderboard-close">✕</button>
+      </div>
+      <div id="leaderboard-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============== TREND MODAL ============== -->
+  <div id="trend-modal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>📈 Tren Skor Mingguan</h2>
+        <button class="btn btn-ghost btn-icon" id="trend-close">✕</button>
+      </div>
+      <div id="trend-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============== HISTORY MODAL ============== -->
+  <div id="history-modal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📋 Riwayat Sesi</h2>
+        <button class="btn btn-ghost btn-icon" id="history-close">✕</button>
+      </div>
+      <div id="history-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============== PERSONA PICKER MODAL ============== -->
+  <div id="persona-modal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🤖 Pilih AI</h2>
+        <button class="btn btn-ghost btn-icon" id="persona-close">✕</button>
+      </div>
+      <div id="persona-picker-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============== SETTINGS MODAL ============== -->
+  <div id="settings-modal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙️ Settings — API Key AI</h2>
+        <button class="btn btn-ghost btn-icon" id="settings-close">✕</button>
+      </div>
+      <div id="settings-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container"></div>
+
+  <script src="personas.js"></script>
+  <script src="closing-detector.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
